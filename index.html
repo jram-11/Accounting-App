@@ -859,22 +859,31 @@
                 const isCrCash = (rec.crCode === 110);
                 const isCrSales = (rec.crCode === 410);
 
-                const isSingleLine = (isDrCash || isCrCash || isCrSales) && !(isDrCash && (isCrCash || isCrSales));
-
+                const isCashSale = (isDrCash && isCrSales);
+                const isSingleLine = (isDrCash || isCrCash || isCrSales) && !((isDrCash && isCrCash));
+                
                 if (isSingleLine) {
-                    const displayTitle = isDrCash ? crAcct.title : drAcct.title;
-                    const postRefVal = isDrCash ? rec.crCode : rec.drCode;
+                    let displayTitle = '';
+                    let postRefVal = '';
+
+                    if (isCashSale) {
+                        displayTitle = 'Sales';
+                        postRefVal = '410';
+                    } else {
+                        displayTitle = isDrCash ? crAcct.title : drAcct.title;
+                        postRefVal = isDrCash ? rec.crCode : rec.drCode;
+                    }
 
                     let row = `<tr>
                         <td class="border px-2 py-1">${rec.date}</td>
                         <td class="border px-2 py-1 text-left font-sans font-semibold">${displayTitle}</td>
                         <td class="border px-2 py-1">${rec.doc}</td>
                         <td class="border px-2 py-1">${postRefVal}</td>
-                        <td class="border px-2 py-1">${!isDrCash && rec.drCode !== 410 ? '$'+rec.drAmt.toFixed(2) : ''}</td>
+                        <td class="border px-2 py-1">${!isDrCash && rec.drCode !== 410 && !isCashSale ? '$'+rec.drAmt.toFixed(2) : ''}</td>
                         <td class="border px-2 py-1">${!isCrCash && !isCrSales ? '$'+rec.crAmt.toFixed(2) : ''}</td>
                         <td class="border px-2 py-1">${isDrCash ? '$'+rec.drAmt.toFixed(2) : ''}</td>
                         <td class="border px-2 py-1">${isCrCash ? '$'+rec.crAmt.toFixed(2) : ''}</td>
-                        <td class="border px-2 py-1">${isCrSales ? '$'+rec.crAmt.toFixed(2) : ''}</td>
+                        <td class="border px-2 py-1">${isCrSales || isCashSale ? '$'+rec.crAmt.toFixed(2) : ''}</td>
                     </tr>`;
                     tbody.innerHTML += row;
                 } else {
