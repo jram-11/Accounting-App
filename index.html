@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Century 21 Accounting Application (Chapters 1-8)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-btn.active {
+            border-bottom: 3px solid #2563eb;
+            color: #2563eb;
+            font-weight: 600;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; color: black; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800 font-sans">
+
+    <!-- TOP HEADER & SETUP -->
+    <header class="bg-slate-900 text-white shadow-md no-print">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-wide flex items-center gap-2">
+                    <span>📖</span> Century 21 Accounting
+                </h1>
+                <p class="text-xs text-slate-400">Chapters 1–8: Full Accounting Cycle Engine</p>
+            </div>
+            
+            <!-- Dynamic Global Config Fields -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm w-full md:w-auto">
+                <div>
+                    <label class="block text-xs text-slate-400">Company Name</label>
+                    <input type="text" id="cfg-company-name" value="Enriquez Service Business" 
+                           class="bg-slate-800 text-white px-2 py-1 rounded border border-slate-700 w-full text-xs font-semibold focus:outline-none focus:border-blue-500" onchange="updateGlobalConfig()">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400">Owner Name</label>
+                    <input type="text" id="cfg-owner-name" value="Michael Enriquez" 
+                           class="bg-slate-800 text-white px-2 py-1 rounded border border-slate-700 w-full text-xs font-semibold focus:outline-none focus:border-blue-500" onchange="updateGlobalConfig()">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400">Period / Date</label>
+                    <input type="text" id="cfg-period-date" value="For Month Ended August 31, 2026" 
+                           class="bg-slate-800 text-white px-2 py-1 rounded border border-slate-700 w-full text-xs font-semibold focus:outline-none focus:border-blue-500" onchange="updateGlobalConfig()">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-10 no-print shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 flex overflow-x-auto space-x-6 text-sm font-medium text-gray-600">
+            <button onclick="switchTab('chart')" id="tab-chart" class="tab-btn py-3 px-1 whitespace-nowrap active">Ch 1: Chart of Accounts</button>
+            <button onclick="switchTab('journal')" id="tab-journal" class="tab-btn py-3 px-1 whitespace-nowrap">Ch 2-3: Multi-Column Journal</button>
+            <button onclick="switchTab('ledger')" id="tab-ledger" class="tab-btn py-3 px-1 whitespace-nowrap">Ch 4: General Ledger</button>
+            <button onclick="switchTab('worksheet')" id="tab-worksheet" class="tab-btn py-3 px-1 whitespace-nowrap">Ch 6: 8-Column Work Sheet</button>
+            <button onclick="switchTab('statements')" id="tab-statements" class="tab-btn py-3 px-1 whitespace-nowrap">Ch 7: Financial Statements</button>
+            <button onclick="switchTab('closing')" id="tab-closing" class="tab-btn py-3 px-1 whitespace-nowrap">Ch 8: Closing & Trial Balances</button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
+
+        <!-- TAB 1: CHART OF ACCOUNTS -->
+        <section id="sec-chart" class="tab-content block">
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">Chart of Accounts (Chapter 1)</h2>
+                        <p class="text-sm text-gray-500">Standard 5-Part Accounting Structure (100 Assets, 200 Liabilities, 300 Owner's Equity, 400 Revenue, 500 Expenses)</p>
+                    </div>
+                    <button onclick="loadSampleTransactions()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-2 rounded shadow transition">
+                        ⚡ Load Textbook Sample Data
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 border text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left font-semibold text-gray-700">Account No.</th>
+                                <th class="px-4 py-2 text-left font-semibold text-gray-700">Account Title</th>
+                                <th class="px-4 py-2 text-left font-semibold text-gray-700">Classification</th>
+                                <th class="px-4 py-2 text-left font-semibold text-gray-700">Normal Balance</th>
+                                <th class="px-4 py-2 text-right font-semibold text-gray-700">Current Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="chart-table-body" class="divide-y divide-gray-200">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Add Custom Account Form -->
+                <div class="mt-6 border-t pt-4">
+                    <h3 class="text-md font-semibold text-gray-700 mb-2">Add New Custom Account</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <input type="number" id="new-acct-code" placeholder="Account No. (e.g. 540)" class="border px-3 py-1.5 rounded text-sm">
+                        <input type="text" id="new-acct-title" placeholder="Account Name (e.g. Rent Expense)" class="border px-3 py-1.5 rounded text-sm">
+                        <select id="new-acct-type" class="border px-3 py-1.5 rounded text-sm">
+                            <option value="Asset">Asset (100)</option>
+                            <option value="Liability">Liability (200)</option>
+                            <option value="Owner's Equity">Owner's Equity (300)</option>
+                            <option value="Revenue">Revenue (400)</option>
+                            <option value="Expense">Expense (500)</option>
+                        </select>
+                        <button onclick="addCustomAccount()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-1.5 rounded text-sm transition">
+                            + Add Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: JOURNAL ENTRY & MULTI-COLUMN JOURNAL -->
+        <section id="sec-journal" class="tab-content hidden">
+            <!-- Journal Entry Form -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6 no-print">
+                <h2 class="text-xl font-bold text-gray-800 mb-2">Journalize Transaction (Chapters 2–3)</h2>
+                <p class="text-xs text-gray-500 mb-4">Enter balanced double-entry transactions. General account changes use individual debit/credit lines.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-3 mb-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Date</label>
+                        <input type="date" id="j-date" class="w-full border px-2 py-1.5 rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Doc No / Post Ref</label>
+                        <input type="text" id="j-doc" placeholder="C1, R1, T1, M1" class="w-full border px-2 py-1.5 rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Debit Account</label>
+                        <select id="j-debit-acct" class="w-full border px-2 py-1.5 rounded text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Debit Amount ($)</label>
+                        <input type="number" step="0.01" id="j-debit-amt" placeholder="0.00" class="w-full border px-2 py-1.5 rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Credit Account</label>
+                        <select id="j-credit-acct" class="w-full border px-2 py-1.5 rounded text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Credit Amount ($)</label>
+                        <input type="number" step="0.01" id="j-credit-amt" placeholder="0.00" class="w-full border px-2 py-1.5 rounded text-sm">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <button onclick="clearJournalForm()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-1.5 rounded text-sm">Clear</button>
+                    <button onclick="submitJournalEntry()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-1.5 rounded text-sm font-semibold shadow">
+                        Journalize & Post Transaction
+                    </button>
+                </div>
+            </div>
+
+            <!-- Combination Multi-Column Journal Table -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">Multi-Column Combination Journal</h2>
+                    <span class="text-xs font-mono bg-blue-50 text-blue-700 px-2 py-1 rounded">Page 1</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full border text-xs text-center border-collapse">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th rowspan="2" class="border px-2 py-1">Date</th>
+                                <th rowspan="2" class="border px-2 py-1">Account Title / Description</th>
+                                <th rowspan="2" class="border px-2 py-1">Doc No.</th>
+                                <th rowspan="2" class="border px-2 py-1">Post Ref.</th>
+                                <th colspan="2" class="border px-2 py-1 bg-blue-50">GENERAL</th>
+                                <th colspan="2" class="border px-2 py-1 bg-green-50">CASH</th>
+                                <th class="border px-2 py-1 bg-yellow-50">SALES</th>
+                            </tr>
+                            <tr>
+                                <th class="border px-2 py-1 bg-blue-50">Debit</th>
+                                <th class="border px-2 py-1 bg-blue-50">Credit</th>
+                                <th class="border px-2 py-1 bg-green-50">Debit</th>
+                                <th class="border px-2 py-1 bg-green-50">Credit</th>
+                                <th class="border px-2 py-1 bg-yellow-50">Credit (410)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="journal-table-body" class="divide-y divide-gray-200 font-mono">
+                            <!-- Populated Dynamically -->
+                        </tbody>
+                        <tfoot class="bg-gray-100 font-bold font-mono">
+                            <tr id="journal-totals-row">
+                                <td colspan="4" class="border px-2 py-2 text-right">Totals:</td>
+                                <td id="j-tot-gen-dr" class="border px-2 py-2">$0.00</td>
+                                <td id="j-tot-gen-cr" class="border px-2 py-2">$0.00</td>
+                                <td id="j-tot-cash-dr" class="border px-2 py-2">$0.00</td>
+                                <td id="j-tot-cash-cr" class="border px-2 py-2">$0.00</td>
+                                <td id="j-tot-sales-cr" class="border px-2 py-2">$0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: GENERAL LEDGER BOOKS -->
+        <section id="sec-ledger" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">General Ledger (Chapter 4)</h2>
+                    <p class="text-sm text-gray-500">Standard 4-Column Running Balance Accounts</p>
+                </div>
+            </div>
+            <div id="ledger-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Ledger Cards populated dynamically -->
+            </div>
+        </section>
+
+        <!-- TAB 4: 8-COLUMN WORK SHEET -->
+        <section id="sec-worksheet" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-center mb-6">
+                    <h2 id="ws-comp-name" class="text-xl font-bold text-gray-900">Enriquez Service Business</h2>
+                    <h3 class="text-lg font-semibold text-gray-700">WORK SHEET</h3>
+                    <p id="ws-period" class="text-xs text-gray-500">For Month Ended August 31, 2026</p>
+                </div>
+
+                <!-- Adjusting Entries Inputs -->
+                <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded no-print">
+                    <h4 class="text-xs font-bold text-yellow-800 uppercase tracking-wider mb-2">Chapter 6 Adjustments Inputs</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <label class="block font-medium text-gray-700">Supplies Expense / Used ($)</label>
+                            <input type="number" id="adj-supplies" value="150.00" onchange="renderWorksheet()" class="mt-1 border px-2 py-1 rounded w-full">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-gray-700">Insurance Expired ($)</label>
+                            <input type="number" id="adj-insurance" value="200.00" onchange="renderWorksheet()" class="mt-1 border px-2 py-1 rounded w-full">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full border text-xs text-center font-mono">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th rowspan="2" class="border px-2 py-1 text-left">Account Title</th>
+                                <th colspan="2" class="border px-2 py-1">TRIAL BALANCE</th>
+                                <th colspan="2" class="border px-2 py-1">ADJUSTMENTS</th>
+                                <th colspan="2" class="border px-2 py-1">INCOME STATEMENT</th>
+                                <th colspan="2" class="border px-2 py-1">BALANCE SHEET</th>
+                            </tr>
+                            <tr>
+                                <th class="border px-2 py-1">Dr</th><th class="border px-2 py-1">Cr</th>
+                                <th class="border px-2 py-1">Dr</th><th class="border px-2 py-1">Cr</th>
+                                <th class="border px-2 py-1">Dr</th><th class="border px-2 py-1">Cr</th>
+                                <th class="border px-2 py-1">Dr</th><th class="border px-2 py-1">Cr</th>
+                            </tr>
+                        </thead>
+                        <tbody id="worksheet-body" class="divide-y divide-gray-200">
+                            <!-- Generated Dynamically -->
+                        </tbody>
+                        <tfoot class="bg-gray-100 font-bold">
+                            <tr id="ws-totals-row"></tr>
+                            <tr id="ws-netincome-row" class="text-blue-700 bg-blue-50"></tr>
+                            <tr id="ws-final-totals-row"></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: FINANCIAL STATEMENTS -->
+        <section id="sec-statements" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Income Statement -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="text-center mb-6">
+                        <h3 id="stmt-inc-comp" class="text-lg font-bold text-gray-800">Enriquez Service Business</h3>
+                        <h4 class="text-md font-semibold text-gray-600">INCOME STATEMENT</h4>
+                        <p id="stmt-inc-date" class="text-xs text-gray-500">For Month Ended August 31, 2026</p>
+                    </div>
+
+                    <div class="space-y-4 text-sm font-mono">
+                        <div>
+                            <h5 class="font-bold border-b pb-1 text-gray-700">Revenue</h5>
+                            <div id="stmt-revenue-rows" class="pl-4 py-1"></div>
+                        </div>
+
+                        <div>
+                            <h5 class="font-bold border-b pb-1 text-gray-700">Expenses</h5>
+                            <div id="stmt-expense-rows" class="pl-4 py-1 space-y-1"></div>
+                            <div class="flex justify-between font-bold border-t pt-1 mt-2">
+                                <span>Total Expenses</span>
+                                <span id="stmt-total-expenses">$0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between font-bold text-base border-t-2 border-b-2 py-2 text-blue-800 bg-blue-50 px-2">
+                            <span>Net Income</span>
+                            <span id="stmt-net-income">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Balance Sheet -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="text-center mb-6">
+                        <h3 id="stmt-bs-comp" class="text-lg font-bold text-gray-800">Enriquez Service Business</h3>
+                        <h4 class="text-md font-semibold text-gray-600">BALANCE SHEET</h4>
+                        <p id="stmt-bs-date" class="text-xs text-gray-500">August 31, 2026</p>
+                    </div>
+
+                    <div class="space-y-4 text-sm font-mono">
+                        <div>
+                            <h5 class="font-bold border-b pb-1 text-gray-700">Assets</h5>
+                            <div id="stmt-asset-rows" class="pl-4 py-1 space-y-1"></div>
+                            <div class="flex justify-between font-bold border-t pt-1 mt-2">
+                                <span>Total Assets</span>
+                                <span id="stmt-total-assets">$0.00</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h5 class="font-bold border-b pb-1 text-gray-700">Liabilities</h5>
+                            <div id="stmt-liab-rows" class="pl-4 py-1 space-y-1"></div>
+                            <div class="flex justify-between font-bold border-t pt-1 mt-2">
+                                <span>Total Liabilities</span>
+                                <span id="stmt-total-liab">$0.00</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h5 class="font-bold border-b pb-1 text-gray-700">Owner's Equity</h5>
+                            <div class="pl-4 py-1 space-y-1">
+                                <div class="flex justify-between">
+                                    <span id="stmt-capital-label">Owner Capital (Ending)</span>
+                                    <span id="stmt-ending-capital">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between font-bold text-base border-t-2 border-b-2 py-2 text-green-800 bg-green-50 px-2">
+                            <span>Total Liab. & Equity</span>
+                            <span id="stmt-total-liab-equity">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 6: CLOSING ENTRIES & POST-CLOSING TRIAL BALANCE -->
+        <section id="sec-closing" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">Closing Journal Entries (Chapter 8)</h2>
+                        <p class="text-xs text-gray-500">Four-step closing process: Close Revenue, Close Expenses (combined credit), Close Income Summary, Close Drawing.</p>
+                    </div>
+                    <button onclick="executeClosingEntries()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2 rounded shadow">
+                        🔒 Execute Closing Entries
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full border text-xs font-mono">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="border px-3 py-1 text-left">Date</th>
+                                <th class="border px-3 py-1 text-left">Account Title / Description</th>
+                                <th class="border px-3 py-1 text-center">Post Ref.</th>
+                                <th class="border px-3 py-1 text-right">Debit</th>
+                                <th class="border px-3 py-1 text-right">Credit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="closing-journal-body" class="divide-y divide-gray-200">
+                            <tr><td colspan="5" class="text-center py-4 text-gray-400">Click "Execute Closing Entries" to calculate textbook closing steps.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Post-Closing Trial Balance -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-center mb-6">
+                    <h3 id="pctb-comp" class="text-lg font-bold text-gray-800">Enriquez Service Business</h3>
+                    <h4 class="text-md font-semibold text-gray-600">POST-CLOSING TRIAL BALANCE</h4>
+                    <p id="pctb-date" class="text-xs text-gray-500">August 31, 2026</p>
+                </div>
+
+                <div class="max-w-2xl mx-auto overflow-x-auto">
+                    <table class="min-w-full border text-xs font-mono">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="border px-4 py-2 text-left">Account Title</th>
+                                <th class="border px-4 py-2 text-right">Debit</th>
+                                <th class="border px-4 py-2 text-right">Credit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pctb-body" class="divide-y divide-gray-200">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                        <tfoot class="bg-gray-100 font-bold border-t-2">
+                            <tr id="pctb-totals-row">
+                                <td class="border px-4 py-2">Totals</td>
+                                <td id="pctb-tot-dr" class="border px-4 py-2 text-right">$0.00</td>
+                                <td id="pctb-tot-cr" class="border px-4 py-2 text-right">$0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JAVASCRIPT ACCOUNTING LOGIC ENGINE -->
+    <script>
+        // 1. DATA STRUCTURES & APPLICATION STATE
+        const defaultAccounts = [
+            { code: 110, title: 'Cash', type: 'Asset', normal: 'Debit', balance: 0 },
+            { code: 120, title: 'Petty Cash', type: 'Asset', normal: 'Debit', balance: 0 },
+            { code: 130, title: 'Accounts Receivable', type: 'Asset', normal: 'Debit', balance: 0 },
+            { code: 140, title: 'Supplies', type: 'Asset', normal: 'Debit', balance: 0 },
+            { code: 150, title: 'Prepaid Insurance', type: 'Asset', normal: 'Debit', balance: 0 },
+            { code: 210, title: 'Accounts Payable', type: 'Liability', normal: 'Credit', balance: 0 },
+            { code: 310, title: 'Owner Capital', type: "Owner's Equity", normal: 'Credit', balance: 0 },
+            { code: 320, title: 'Owner Drawing', type: "Owner's Equity", normal: 'Debit', balance: 0 },
+            { code: 330, title: 'Income Summary', type: "Owner's Equity", normal: 'Credit', balance: 0 },
+            { code: 410, title: 'Sales', type: 'Revenue', normal: 'Credit', balance: 0 },
+            { code: 510, title: 'Advertising Expense', type: 'Expense', normal: 'Debit', balance: 0 },
+            { code: 520, title: 'Rent Expense', type: 'Expense', normal: 'Debit', balance: 0 },
+            { code: 530, title: 'Utilities Expense', type: 'Expense', normal: 'Debit', balance: 0 }
+        ];
+
+        let chartOfAccounts = [...defaultAccounts];
+        let dailyJournalRecords = [];
+        let closingEntriesList = [];
+        let globalConfig = {
+            company: 'Enriquez Service Business',
+            owner: 'Michael Enriquez',
+            dateStr: 'For Month Ended August 31, 2026'
+        };
+
+        // 2. DOM INITIALIZATION
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+        });
+
+        function initApp() {
+            buildDropdowns();
+            renderChartOfAccounts();
+            recalculateLedgers();
+            renderWorksheet();
+        }
+
+        // Global configuration updates
+        function updateGlobalConfig() {
+            globalConfig.company = document.getElementById('cfg-company-name').value || 'Enriquez Service Business';
+            globalConfig.owner = document.getElementById('cfg-owner-name').value || 'Michael Enriquez';
+            globalConfig.dateStr = document.getElementById('cfg-period-date').value || 'For Month Ended August 31, 2026';
+
+            // Sync Headers
+            document.getElementById('ws-comp-name').innerText = globalConfig.company;
+            document.getElementById('ws-period').innerText = globalConfig.dateStr;
+            document.getElementById('stmt-inc-comp').innerText = globalConfig.company;
+            document.getElementById('stmt-inc-date').innerText = globalConfig.dateStr;
+            document.getElementById('stmt-bs-comp').innerText = globalConfig.company;
+            document.getElementById('stmt-bs-date').innerText = globalConfig.dateStr.replace('For Month Ended ', '');
+            document.getElementById('pctb-comp').innerText = globalConfig.company;
+            document.getElementById('pctb-date').innerText = globalConfig.dateStr.replace('For Month Ended ', '');
+
+            document.getElementById('stmt-capital-label').innerText = `${globalConfig.owner}, Capital`;
+
+            renderStatements();
+        }
+
+        // Tab Navigation Switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+
+            if (tabId === 'worksheet') renderWorksheet();
+            if (tabId === 'statements') renderStatements();
+            if (tabId === 'closing') renderPostClosingTrialBalance();
+        }
+
+        // 3. CHART OF ACCOUNTS FUNCTIONS
+        function renderChartOfAccounts() {
+            const tbody = document.getElementById('chart-table-body');
+            tbody.innerHTML = '';
+            chartOfAccounts.forEach(acct => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-4 py-2 font-mono font-bold text-blue-600">${acct.code}</td>
+                    <td class="px-4 py-2 font-medium">${acct.title}</td>
+                    <td class="px-4 py-2 text-gray-500">${acct.type}</td>
+                    <td class="px-4 py-2 text-gray-500">${acct.normal}</td>
+                    <td class="px-4 py-2 text-right font-mono">$${(acct.balance || 0).toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function buildDropdowns() {
+            const drSelect = document.getElementById('j-debit-acct');
+            const crSelect = document.getElementById('j-credit-acct');
+            drSelect.innerHTML = '<option value="">-- Select Debit Account --</option>';
+            crSelect.innerHTML = '<option value="">-- Select Credit Account --</option>';
+
+            chartOfAccounts.forEach(acct => {
+                drSelect.innerHTML += `<option value="${acct.code}">${acct.code} - ${acct.title}</option>`;
+                crSelect.innerHTML += `<option value="${acct.code}">${acct.code} - ${acct.title}</option>`;
+            });
+        }
+
+        function addCustomAccount() {
+            const code = parseInt(document.getElementById('new-acct-code').value);
+            const title = document.getElementById('new-acct-title').value.trim();
+            const type = document.getElementById('new-acct-type').value;
+
+            if (!code || !title) {
+                alert('Please provide valid Account Code and Title.');
+                return;
+            }
+
+            const normal = (type === 'Asset' || type === 'Expense' || title.includes('Drawing')) ? 'Debit' : 'Credit';
+            chartOfAccounts.push({ code, title, type, normal, balance: 0 });
+            chartOfAccounts.sort((a, b) => a.code - b.code);
+
+            renderChartOfAccounts();
+            buildDropdowns();
+            recalculateLedgers();
+            alert(`Account ${code} - ${title} added successfully!`);
+        }
+
+        // 4. JOURNALIZING & POSTING ENGINE
+        function submitJournalEntry() {
+            const date = document.getElementById('j-date').value;
+            const doc = document.getElementById('j-doc').value.trim();
+            const drCode = parseInt(document.getElementById('j-debit-acct').value);
+            const drAmt = parseFloat(document.getElementById('j-debit-amt').value) || 0;
+            const crCode = parseInt(document.getElementById('j-credit-acct').value);
+            const crAmt = parseFloat(document.getElementById('j-credit-amt').value) || 0;
+
+            if (!date || !drCode || !crCode || drAmt <= 0 || crAmt <= 0) {
+                alert('Please complete all required fields with valid amounts.');
+                return;
+            }
+
+            if (drAmt !== crAmt) {
+                alert(`STRICT ACCOUNTING ALERT: Debits ($${drAmt}) must equal Credits ($${crAmt})!`);
+                return;
+            }
+
+            dailyJournalRecords.push({
+                id: Date.now(),
+                date,
+                doc,
+                drCode,
+                drAmt,
+                crCode,
+                crAmt
+            });
+
+            clearJournalForm();
+            recalculateLedgers();
+            renderJournalTable();
+            alert('Transaction successfully journalized and posted to Ledger!');
+        }
+
+        function clearJournalForm() {
+            document.getElementById('j-date').value = '';
+            document.getElementById('j-doc').value = '';
+            document.getElementById('j-debit-acct').value = '';
+            document.getElementById('j-debit-amt').value = '';
+            document.getElementById('j-credit-acct').value = '';
+            document.getElementById('j-credit-amt').value = '';
+        }
+
+        function renderJournalTable() {
+            const tbody = document.getElementById('journal-table-body');
+            tbody.innerHTML = '';
+
+            let totGenDr = 0, totGenCr = 0, totCashDr = 0, totCashCr = 0, totSalesCr = 0;
+
+            dailyJournalRecords.forEach(rec => {
+                const drAcct = chartOfAccounts.find(a => a.code === rec.drCode);
+                const crAcct = chartOfAccounts.find(a => a.code === rec.crCode);
+
+                const isDrCash = (rec.drCode === 110);
+                const isCrCash = (rec.crCode === 110);
+                const isCrSales = (rec.crCode === 410);
+
+                const isSingleLine = (isDrCash || isCrCash || isCrSales) && !(isDrCash && (isCrCash || isCrSales));
+
+                if (isSingleLine) {
+                    const displayTitle = isDrCash ? crAcct.title : drAcct.title;
+                    const postRefVal = isDrCash ? rec.crCode : rec.drCode;
+
+                    let row = `<tr>
+                        <td class="border px-2 py-1">${rec.date}</td>
+                        <td class="border px-2 py-1 text-left font-sans font-semibold">${displayTitle}</td>
+                        <td class="border px-2 py-1">${rec.doc}</td>
+                        <td class="border px-2 py-1">${postRefVal}</td>
+                        <td class="border px-2 py-1">${!isDrCash && rec.drCode !== 410 ? '$'+rec.drAmt.toFixed(2) : ''}</td>
+                        <td class="border px-2 py-1">${!isCrCash && !isCrSales ? '$'+rec.crAmt.toFixed(2) : ''}</td>
+                        <td class="border px-2 py-1">${isDrCash ? '$'+rec.drAmt.toFixed(2) : ''}</td>
+                        <td class="border px-2 py-1">${isCrCash ? '$'+rec.crAmt.toFixed(2) : ''}</td>
+                        <td class="border px-2 py-1">${isCrSales ? '$'+rec.crAmt.toFixed(2) : ''}</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                } else {
+                    let row1 = `<tr>
+                        <td class="border px-2 py-1">${rec.date}</td>
+                        <td class="border px-2 py-1 text-left font-sans font-semibold">${drAcct.title}</td>
+                        <td class="border px-2 py-1">${rec.doc}</td>
+                        <td class="border px-2 py-1">${rec.drCode}</td>
+                        <td class="border px-2 py-1">$${rec.drAmt.toFixed(2)}</td>
+                        <td class="border px-2 py-1"></td>
+                        <td class="border px-2 py-1"></td>
+                        <td class="border px-2 py-1"></td>
+                        <td class="border px-2 py-1"></td>
+                    </tr>`;
+
+                    let row2 = `<tr>
+                        <td class="border px-2 py-1"></td>
+                        <td class="border px-2 py-1 text-left font-sans pl-6 text-gray-600">${crAcct.title}</td>
+                        <td class="border px-2 py-1">${rec.doc}</td>
+                        <td class="border px-2 py-1">${rec.crCode}</td>
+                        <td class="border px-2 py-1"></td>
+                        <td class="border px-2 py-1">$${rec.crAmt.toFixed(2)}</td>
+                        <td class="border px-2 py-1"></td>
+                        <td class="border px-2 py-1"></td>
+                        <td class="border px-2 py-1"></td>
+                    </tr>`;
+                    tbody.innerHTML += row1 + row2;
+                }
+
+                if (rec.drCode === 110) totCashDr += rec.drAmt;
+                else totGenDr += rec.drAmt;
+
+                if (rec.crCode === 110) totCashCr += rec.crAmt;
+                else if (rec.crCode === 410) totSalesCr += rec.crAmt;
+                else totGenCr += rec.crAmt;
+            });
+
+            document.getElementById('j-tot-gen-dr').innerText = `$${totGenDr.toFixed(2)}`;
+            document.getElementById('j-tot-gen-cr').innerText = `$${totGenCr.toFixed(2)}`;
+            document.getElementById('j-tot-cash-dr').innerText = `$${totCashDr.toFixed(2)}`;
+            document.getElementById('j-tot-cash-cr').innerText = `$${totCashCr.toFixed(2)}`;
+            document.getElementById('j-tot-sales-cr').innerText = `$${totSalesCr.toFixed(2)}`;
+        }
+
+        // 5. RECALCULATE GENERAL LEDGERS (Chapter 4)
+        function recalculateLedgers() {
+            chartOfAccounts.forEach(a => a.balance = 0);
+
+            const ledgerMap = {};
+            chartOfAccounts.forEach(acct => {
+                ledgerMap[acct.code] = {
+                    info: acct,
+                    entries: [],
+                    signedBalance: 0
+                };
+            });
+
+            dailyJournalRecords.forEach(rec => {
+                // Process Debit Posting
+                if (ledgerMap[rec.drCode]) {
+                    const led = ledgerMap[rec.drCode];
+                    const acct = led.info;
+
+                    if (acct.normal === 'Debit') {
+                        led.signedBalance += rec.drAmt;
+                    } else {
+                        led.signedBalance -= rec.drAmt;
+                    }
+                    acct.balance = led.signedBalance;
+
+                    let balDr = 0, balCr = 0;
+                    if (acct.normal === 'Debit') {
+                        if (led.signedBalance >= 0) balDr = led.signedBalance;
+                        else balCr = Math.abs(led.signedBalance);
+                    } else {
+                        if (led.signedBalance >= 0) balCr = led.signedBalance;
+                        else balDr = Math.abs(led.signedBalance);
+                    }
+
+                    led.entries.push({
+                        date: rec.date,
+                        item: '',
+                        postRef: 'J1',
+                        dr: rec.drAmt,
+                        cr: 0,
+                        balDr: balDr,
+                        balCr: balCr
+                    });
+                }
+
+                // Process Credit Posting
+                if (ledgerMap[rec.crCode]) {
+                    const led = ledgerMap[rec.crCode];
+                    const acct = led.info;
+
+                    if (acct.normal === 'Credit') {
+                        led.signedBalance += rec.crAmt;
+                    } else {
+                        led.signedBalance -= rec.crAmt;
+                    }
+                    acct.balance = led.signedBalance;
+
+                    let balDr = 0, balCr = 0;
+                    if (acct.normal === 'Credit') {
+                        if (led.signedBalance >= 0) balCr = led.signedBalance;
+                        else balDr = Math.abs(led.signedBalance);
+                    } else {
+                        if (led.signedBalance >= 0) balCr = led.signedBalance;
+                        else balDr = Math.abs(led.signedBalance);
+                    }
+
+                    led.entries.push({
+                        date: rec.date,
+                        item: '',
+                        postRef: 'J1',
+                        dr: 0,
+                        cr: rec.crAmt,
+                        balDr: balDr,
+                        balCr: balCr
+                    });
+                }
+            });
+
+            renderLedgersUI(ledgerMap);
+            renderChartOfAccounts();
+        }
+
+        function renderLedgersUI(ledgerMap) {
+            const container = document.getElementById('ledger-container');
+            container.innerHTML = '';
+
+            Object.keys(ledgerMap).forEach(code => {
+                const ledger = ledgerMap[code];
+                const acct = ledger.info;
+
+                let rowsHtml = '';
+                if (ledger.entries.length === 0) {
+                    rowsHtml = `<tr><td colspan="7" class="text-center py-2 text-gray-400">No transactions posted</td></tr>`;
+                } else {
+                    ledger.entries.forEach(e => {
+                        rowsHtml += `
+                            <tr>
+                                <td class="border px-1 py-0.5">${e.date}</td>
+                                <td class="border px-1 py-0.5">${e.item}</td>
+                                <td class="border px-1 py-0.5">${e.postRef}</td>
+                                <td class="border px-1 py-0.5 text-right">${e.dr ? '$'+e.dr.toFixed(2) : ''}</td>
+                                <td class="border px-1 py-0.5 text-right">${e.cr ? '$'+e.cr.toFixed(2) : ''}</td>
+                                <td class="border px-1 py-0.5 text-right font-semibold">${e.balDr ? '$'+e.balDr.toFixed(2) : ''}</td>
+                                <td class="border px-1 py-0.5 text-right font-semibold">${e.balCr ? '$'+e.balCr.toFixed(2) : ''}</td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                container.innerHTML += `
+                    <div class="bg-white rounded-lg shadow p-4 border border-gray-200">
+                        <div class="flex justify-between items-center border-b pb-2 mb-2">
+                            <h3 class="font-bold text-gray-800 text-sm">${acct.title}</h3>
+                            <span class="font-mono bg-gray-100 text-blue-700 font-bold text-xs px-2 py-0.5 rounded">ACCOUNT NO. ${acct.code}</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs font-mono border">
+                                <thead class="bg-gray-50 text-gray-600">
+                                    <tr>
+                                        <th rowspan="2" class="border px-1">Date</th>
+                                        <th rowspan="2" class="border px-1">Item</th>
+                                        <th rowspan="2" class="border px-1">Post Ref</th>
+                                        <th rowspan="2" class="border px-1">Debit</th>
+                                        <th rowspan="2" class="border px-1">Credit</th>
+                                        <th colspan="2" class="border px-1">Balance</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="border px-1">Debit</th>
+                                        <th class="border px-1">Credit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rowsHtml}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // 6. WORK SHEET ENGINE (Chapter 6)
+        function renderWorksheet() {
+            const tbody = document.getElementById('worksheet-body');
+            tbody.innerHTML = '';
+
+            const adjSupplies = parseFloat(document.getElementById('adj-supplies').value) || 0;
+            const adjInsurance = parseFloat(document.getElementById('adj-insurance').value) || 0;
+
+            let totTbDr = 0, totTbCr = 0;
+            let totAdjDr = 0, totAdjCr = 0;
+            let totIncDr = 0, totIncCr = 0;
+            let totBsDr = 0, totBsCr = 0;
+
+            chartOfAccounts.forEach(acct => {
+                let bal = acct.balance;
+                let tbDr = 0, tbCr = 0;
+
+                if (acct.normal === 'Debit') {
+                    if (bal >= 0) tbDr = bal;
+                    else tbCr = Math.abs(bal);
+                } else {
+                    if (bal >= 0) tbCr = bal;
+                    else tbDr = Math.abs(bal);
+                }
+
+                let adjDr = 0, adjCr = 0;
+                if (acct.code === 140) adjCr = adjSupplies;
+                if (acct.code === 150) adjCr = adjInsurance;
+                if (acct.title.includes('Supplies Expense')) adjDr = adjSupplies;
+                if (acct.title.includes('Insurance Expense')) adjDr = adjInsurance;
+
+                totTbDr += tbDr; 
+                totTbCr += tbCr;
+                totAdjDr += adjDr; 
+                totAdjCr += adjCr;
+
+                let incDr = 0, incCr = 0, bsDr = 0, bsCr = 0;
+
+                if (acct.type === 'Revenue') {
+                    incCr = tbCr + adjCr;
+                } else if (acct.type === 'Expense') {
+                    incDr = tbDr + adjDr;
+                } else {
+                    let netVal = (tbDr - tbCr) + (adjDr - adjCr);
+                    if (acct.normal === 'Debit') {
+                        if (netVal >= 0) bsDr = netVal;
+                        else bsCr = Math.abs(netVal);
+                    } else {
+                        let netCrVal = (tbCr - tbDr) + (adjCr - adjDr);
+                        if (netCrVal >= 0) bsCr = netCrVal;
+                        else bsDr = Math.abs(netCrVal);
+                    }
+                }
+
+                totIncDr += incDr; totIncCr += incCr;
+                totBsDr += bsDr; totBsCr += bsCr;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="border px-2 py-1 text-left font-sans font-medium">${acct.title}</td>
+                        <td class="border px-2 py-1">${tbDr ? '$'+tbDr.toFixed(2) : ''}</td>
+                        <td class="border px-2 py-1">${tbCr ? '$'+tbCr.toFixed(2) : ''}</td>
+                        <td class="border px-2 py-1">${adjDr ? '$'+adjDr.toFixed(2) : ''}</td>
+                        <td class="border px-2 py-1">${adjCr ? '$'+adjCr.toFixed(2) : ''}</td>
+                        <td class="border px-2 py-1">${incDr ? '$'+incDr.toFixed(2) : ''}</td>
+                        <td class="border px-2 py-1">${incCr ? '$'+incCr.toFixed(2) : ''}</td>
+                        <td class="border px-2 py-1">${bsDr ? '$'+bsDr.toFixed(2) : ''}</td>
+                        <td class="border px-2 py-1">${bsCr ? '$'+bsCr.toFixed(2) : ''}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('ws-totals-row').innerHTML = `
+                <td class="border px-2 py-1 text-left font-bold font-sans">Totals</td>
+                <td class="border px-2 py-1">$${totTbDr.toFixed(2)}</td>
+                <td class="border px-2 py-1">$${totTbCr.toFixed(2)}</td>
+                <td class="border px-2 py-1">$${totAdjDr.toFixed(2)}</td>
+                <td class="border px-2 py-1">$${totAdjCr.toFixed(2)}</td>
+                <td class="border px-2 py-1">$${totIncDr.toFixed(2)}</td>
+                <td class="border px-2 py-1">$${totIncCr.toFixed(2)}</td>
+                <td class="border px-2 py-1">$${totBsDr.toFixed(2)}</td>
+                <td class="border px-2 py-1">$${totBsCr.toFixed(2)}</td>
+            `;
+
+            const netIncome = totIncCr - totIncDr;
+
+            document.getElementById('ws-netincome-row').innerHTML = `
+                <td class="border px-2 py-1 text-left font-bold font-sans">Net Income / Loss</td>
+                <td class="border px-2 py-1"></td><td class="border px-2 py-1"></td>
+                <td class="border px-2 py-1"></td><td class="border px-2 py-1"></td>
+                <td class="border px-2 py-1">${netIncome >= 0 ? '$'+netIncome.toFixed(2) : ''}</td>
+                <td class="border px-2 py-1">${netIncome < 0 ? '$'+Math.abs(netIncome).toFixed(2) : ''}</td>
+                <td class="border px-2 py-1 font-bold">${netIncome < 0 ? '$'+Math.abs(netIncome).toFixed(2) : ''}</td>
+                <td class="border px-2 py-1 font-bold">${netIncome >= 0 ? '$'+netIncome.toFixed(2) : ''}</td>
+            `;
+
+            document.getElementById('ws-final-totals-row').innerHTML = `
+                <td class="border px-2 py-1 text-left font-bold font-sans">Balanced Totals</td>
+                <td class="border px-2 py-1">$${totTbDr.toFixed(2)}</td>
+                <td class="border px-2 py-1">$${totTbCr.toFixed(2)}</td>
+                <td class="border px-2 py-1">$${totAdjDr.toFixed(2)}</td>
+                <td class="border px-2 py-1">$${totAdjCr.toFixed(2)}</td>
+                <td class="border px-2 py-1">$${(totIncDr + Math.max(0, netIncome)).toFixed(2)}</td>
+                <td class="border px-2 py-1">$${(totIncCr + Math.abs(Math.min(0, netIncome))).toFixed(2)}</td>
+                <td class="border px-2 py-1">$${(totBsDr + Math.abs(Math.min(0, netIncome))).toFixed(2)}</td>
+                <td class="border px-2 py-1">$${(totBsCr + Math.max(0, netIncome)).toFixed(2)}</td>
+            `;
+        }
+
+        // 7. FINANCIAL STATEMENTS (Chapter 7)
+        function renderStatements() {
+            const revContainer = document.getElementById('stmt-revenue-rows');
+            const expContainer = document.getElementById('stmt-expense-rows');
+            revContainer.innerHTML = '';
+            expContainer.innerHTML = '';
+
+            let totalRev = 0, totalExp = 0;
+
+            chartOfAccounts.filter(a => a.type === 'Revenue').forEach(a => {
+                let val = a.balance;
+                totalRev += val;
+                revContainer.innerHTML += `<div class="flex justify-between"><span>${a.title}</span><span>$${val.toFixed(2)}</span></div>`;
+            });
+
+            chartOfAccounts.filter(a => a.type === 'Expense').forEach(a => {
+                let val = a.balance;
+                totalExp += val;
+                expContainer.innerHTML += `<div class="flex justify-between"><span>${a.title}</span><span>$${val.toFixed(2)}</span></div>`;
+            });
+
+            const netIncome = totalRev - totalExp;
+            document.getElementById('stmt-total-expenses').innerText = `$${totalExp.toFixed(2)}`;
+            document.getElementById('stmt-net-income').innerText = `$${netIncome.toFixed(2)}`;
+
+            const assetContainer = document.getElementById('stmt-asset-rows');
+            const liabContainer = document.getElementById('stmt-liab-rows');
+            assetContainer.innerHTML = '';
+            liabContainer.innerHTML = '';
+
+            let totalAssets = 0, totalLiab = 0;
+
+            chartOfAccounts.filter(a => a.type === 'Asset').forEach(a => {
+                let val = a.balance >= 0 ? a.balance : 0;
+                totalAssets += a.balance;
+                assetContainer.innerHTML += `<div class="flex justify-between"><span>${a.title}</span><span>$${a.balance < 0 ? '(' + Math.abs(a.balance).toFixed(2) + ')' : a.balance.toFixed(2)}</span></div>`;
+            });
+
+            chartOfAccounts.filter(a => a.type === 'Liability').forEach(a => {
+                totalLiab += a.balance;
+                liabContainer.innerHTML += `<div class="flex justify-between"><span>${a.title}</span><span>$${a.balance.toFixed(2)}</span></div>`;
+            });
+
+            const capitalAcct = chartOfAccounts.find(a => a.code === 310) || { balance: 0 };
+            const drawingAcct = chartOfAccounts.find(a => a.code === 320) || { balance: 0 };
+            
+            const endingCapital = capitalAcct.balance + netIncome - drawingAcct.balance;
+
+            document.getElementById('stmt-total-assets').innerText = `$${totalAssets.toFixed(2)}`;
+            document.getElementById('stmt-total-liab').innerText = `$${totalLiab.toFixed(2)}`;
+            document.getElementById('stmt-ending-capital').innerText = `$${endingCapital.toFixed(2)}`;
+            document.getElementById('stmt-total-liab-equity').innerText = `$${(totalLiab + endingCapital).toFixed(2)}`;
+        }
+
+        // 8. CLOSING ENTRIES ENGINE & POST-CLOSING TRIAL BALANCE (Chapter 8)
+        function executeClosingEntries() {
+            closingEntriesList = [];
+            const date = new Date().toISOString().split('T')[0];
+
+            let totalRevenue = 0;
+            let expenses = [];
+            let totalExpenses = 0;
+
+            chartOfAccounts.forEach(a => {
+                if (a.type === 'Revenue') totalRevenue += a.balance;
+                if (a.type === 'Expense' && a.balance > 0) {
+                    expenses.push(a);
+                    totalExpenses += a.balance;
+                }
+            });
+
+            closingEntriesList.push({ date, title: 'Sales (410)', ref: '330', dr: totalRevenue, cr: 0 });
+            closingEntriesList.push({ date, title: '  Income Summary', ref: '330', dr: 0, cr: totalRevenue });
+
+            closingEntriesList.push({ date, title: 'Income Summary', ref: '330', dr: totalExpenses, cr: 0 });
+            expenses.forEach(e => {
+                closingEntriesList.push({ date, title: `  ${e.title}`, ref: e.code, dr: 0, cr: e.balance });
+            });
+
+            const netIncome = totalRevenue - totalExpenses;
+            if (netIncome > 0) {
+                closingEntriesList.push({ date, title: 'Income Summary', ref: '310', dr: netIncome, cr: 0 });
+                closingEntriesList.push({ date, title: `  ${globalConfig.owner}, Capital`, ref: '310', dr: 0, cr: netIncome });
+            }
+
+            const drawing = chartOfAccounts.find(a => a.code === 320)?.balance || 0;
+            if (drawing > 0) {
+                closingEntriesList.push({ date, title: `${globalConfig.owner}, Capital`, ref: '320', dr: drawing, cr: 0 });
+                closingEntriesList.push({ date, title: `  ${globalConfig.owner}, Drawing`, ref: '320', dr: 0, cr: drawing });
+            }
+
+            renderClosingTable();
+            renderPostClosingTrialBalance();
+            alert('Four-step closing entries generated successfully!');
+        }
+
+        function renderClosingTable() {
+            const tbody = document.getElementById('closing-journal-body');
+            tbody.innerHTML = '';
+            closingEntriesList.forEach(e => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="border px-3 py-1 font-mono">${e.date}</td>
+                        <td class="border px-3 py-1 ${e.title.startsWith('  ') ? 'pl-6 text-gray-600' : 'font-bold'}">${e.title}</td>
+                        <td class="border px-3 py-1 text-center font-mono">${e.ref}</td>
+                        <td class="border px-3 py-1 text-right font-mono">${e.dr ? '$'+e.dr.toFixed(2) : ''}</td>
+                        <td class="border px-3 py-1 text-right font-mono">${e.cr ? '$'+e.cr.toFixed(2) : ''}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderPostClosingTrialBalance() {
+            const tbody = document.getElementById('pctb-body');
+            tbody.innerHTML = '';
+
+            let totDr = 0, totCr = 0;
+
+            const permanentAccounts = chartOfAccounts.filter(a => a.type === 'Asset' || a.type === 'Liability' || a.code === 310);
+
+            const totalRev = chartOfAccounts.filter(a => a.type === 'Revenue').reduce((sum, a) => sum + a.balance, 0);
+            const totalExp = chartOfAccounts.filter(a => a.type === 'Expense').reduce((sum, a) => sum + a.balance, 0);
+            const drawing = chartOfAccounts.find(a => a.code === 320)?.balance || 0;
+            const netIncome = totalRev - totalExp;
+
+            permanentAccounts.forEach(acct => {
+                let bal = acct.balance;
+                if (acct.code === 310) {
+                    bal = acct.balance + netIncome - drawing;
+                }
+
+                let dr = 0, cr = 0;
+                if (acct.normal === 'Debit') {
+                    if (bal >= 0) dr = bal;
+                    else cr = Math.abs(bal);
+                } else {
+                    if (bal >= 0) cr = bal;
+                    else dr = Math.abs(bal);
+                }
+
+                totDr += dr;
+                totCr += cr;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="border px-4 py-2 font-medium">${acct.title}</td>
+                        <td class="border px-4 py-2 text-right font-mono">${dr ? '$'+dr.toFixed(2) : ''}</td>
+                        <td class="border px-4 py-2 text-right font-mono">${cr ? '$'+cr.toFixed(2) : ''}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('pctb-tot-dr').innerText = `$${totDr.toFixed(2)}`;
+            document.getElementById('pctb-tot-cr').innerText = `$${totCr.toFixed(2)}`;
+        }
+
+        // 9. TEXTBOOK SAMPLE DATA INITIALIZER
+        function loadSampleTransactions() {
+            dailyJournalRecords = [
+                { id: 1, date: '2026-08-01', doc: 'R1', drCode: 110, drAmt: 5000, crCode: 310, crAmt: 5000 },
+                { id: 2, date: '2026-08-03', doc: 'C1', drCode: 520, drAmt: 800, crCode: 110, crAmt: 800 },
+                { id: 3, date: '2026-08-05', doc: 'C2', drCode: 140, drAmt: 350, crCode: 110, crAmt: 350 },
+                { id: 4, date: '2026-08-10', doc: 'R2', drCode: 110, drAmt: 1200, crCode: 410, crAmt: 1200 },
+                { id: 5, date: '2026-08-15', doc: 'C3', drCode: 510, drAmt: 200, crCode: 110, crAmt: 200 },
+                { id: 6, date: '2026-08-20', doc: 'C4', drCode: 320, drAmt: 400, crCode: 110, crAmt: 400 }
+            ];
+
+            recalculateLedgers();
+            renderJournalTable();
+            renderWorksheet();
+            renderStatements();
+            alert('Textbook sample transactions loaded and posted successfully!');
+        }
+    </script>
+</body>
+</html>
