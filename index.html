@@ -793,84 +793,88 @@
 
     // 5. RECALCULATE GENERAL LEDGERS (Chapter 4)
     function recalculateLedgers() {
-        chartOfAccounts.forEach(a => a.balance = 0);
+            chartOfAccounts.forEach(a => a.balance = 0);
 
-        const ledgerMap = {};
-        chartOfAccounts.forEach(acct => {
-            ledgerMap[acct.code] = {
-                info: acct,
-                entries: [],
-                signedBalance: 0
-            };
-        });
+            const ledgerMap = {};
+            chartOfAccounts.forEach(acct => {
+                ledgerMap[acct.code] = {
+                    info: acct,
+                    entries: [],
+                    signedBalance: 0
+                };
+            });
 
-        dailyJournalRecords.forEach(rec => {
-            if (ledgerMap[rec.drCode]) {
-                const led = ledgerMap[rec.drCode];
-                const acct = led.info;
+            dailyJournalRecords.forEach(rec => {
+                // Process Debit Posting
+                if (ledgerMap[rec.drCode]) {
+                    const led = ledgerMap[rec.drCode];
+                    const acct = led.info;
 
-                if (acct.normal === 'Debit') {
-                    led.signedBalance += rec.drAmt;
-                } else {
-                    led.signedBalance -= rec.drAmt;
-                }
-                acct.balance = led.signedBalance;
+                    if (acct.normal === 'Debit') {
+                        led.signedBalance += rec.drAmt;
+                    } else {
+                        led.signedBalance -= rec.drAmt;
+                    }
+                    acct.balance = led.signedBalance;
 
-                let balDr = 0, balCr = 0;
-                if (acct.normal === 'Debit') {
-                    if (led.signedBalance >= 0) balDr = led.signedBalance;
-                    else balCr = Math.abs(led.signedBalance);
-                } else {
-                    if (led.signedBalance >= 0) balCr = led.signedBalance;
-                    else balDr = Math.abs(led.signedBalance);
-                }
+                    let balDr = 0, balCr = 0;
+                    if (acct.normal === 'Debit') {
+                        if (led.signedBalance >= 0) balDr = led.signedBalance;
+                        else balCr = Math.abs(led.signedBalance);
+                    } else {
+                        if (led.signedBalance >= 0) balCr = led.signedBalance;
+                        else balDr = Math.abs(led.signedBalance);
+                    }
 
-                led.entries.push({
-                    date: rec.date,
-                    item: '',
-                    postRef: 'J1',
-                    dr: rec.drAmt,
-                    cr: 0,
-                    balDr: balDr,
-                    balCr: balCr
-                });
-            }
-
-            if (ledgerMap[rec.crCode]) {
-                const led = ledgerMap[rec.crCode];
-                const acct = led.info;
-
-                if (acct.normal === 'Credit') {
-                    led.signedBalance += rec.crAmt;
-                } else {
-                    led.signedBalance -= rec.crAmt;
-                }
-                acct.balance = led.signedBalance;
-
-                let balDr = 0, balCr = 0;
-                if (acct.normal === 'Credit') {
-                    if (led.signedBalance >= 0) balCr = led.signedBalance;
-                    else balDr = Math.abs(led.signedBalance);
-                } else {
-                    if (led.signedBalance >= 0) balCr = led.signedBalance;
-                    else balDr = Math.abs(led.signedBalance);
+                    led.entries.push({
+                        date: rec.date,
+                        item: '',
+                        postRef: 'J1',
+                        dr: rec.drAmt,
+                        cr: 0,
+                        balDr: balDr,
+                        balCr: balCr
+                    });
                 }
 
-                led.entries.push({
-                    date: rec.date,
-                    item: '',
-                    postRef: 'J1',
-                    dr: 0,
-                    cr: rec.crAmt,
-                    balDr: balDr,
-                    balCr: balCr
-                });
-            }
-        });
+                // Process Credit Posting
+                if (ledgerMap[rec.crCode]) {
+                    const led = ledgerMap[rec.crCode];
+                    const acct = led.info;
 
-        renderLedgersUI(ledgerMap);
-        renderChartOfAccounts();
-    }
+                    if (acct.normal === 'Credit') {
+                        led.signedBalance += rec.crAmt;
+                    } else {
+                        led.signedBalance -= rec.crAmt;
+                    }
+                    acct.balance = led.signedBalance;
+
+                    let balDr = 0, balCr = 0;
+                    if (acct.normal === 'Credit') {
+                        if (led.signedBalance >= 0) balCr = led.signedBalance;
+                        else balDr = Math.abs(led.signedBalance);
+                    } else {
+                        // For Normal Debit accounts (like Cash 110), a credit reduces the balance.
+                        // If signedBalance drops below 0, it belongs in the Credit balance column!
+                        if (led.signedBalance >= 0) balDr = led.signedBalance;
+                        else balCr = Math.abs(led.signedBalance);
+                    }
+
+                    led.entries.push({
+                        date: rec.date,
+                        item: '',
+                        postRef: 'J1',
+                        dr: 0,
+                        cr: rec.crAmt,
+                        balDr: balDr,
+                        balCr: balCr
+                    });
+                }
+            });
+
+            renderLedgersUI(ledgerMap);
+            renderChartOfAccounts();
+        }
 
     function renderLedgersUI(ledgerMap) {
         const container = document.getElementById('ledger-container');
